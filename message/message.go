@@ -5,34 +5,50 @@ import (
 	"unicode"
 )
 
+// Requests
 const (
-	// Message word constants.
+	// RqDump denotes a 'dump' request message.
+	RqDump = "dump"
 
-	// - Requests
+	RqFload = "fload"
 
-	// RqRead denotes a 'read' request message.
-	RqRead = "read"
+	RqEject = "eject"
 
-	// RqWrite denotes a 'write' request message.
-	RqWrite = "write"
+	RqPlay = "play"
 
-	// RqDelete denotes a 'delete' request message.
-	RqDelete = "delete"
+	RqStop = "stop"
 
-	// - Responses
+	RqEnd = "end"
 
-	// RsRes denotes a message with the 'RES' response.
-	RsRes = "RES"
+	RqPos = "pos"
+)
 
-	// RsUpdate denotes a message with the 'UPDATE' response.
-	RsUpdate = "UPDATE"
-
+// Responses
+const (
 	// RsAck denotes a message with the 'ACK' response.
 	RsAck = "ACK"
 
 	// RsOhai denotes a message with the 'OHAI' response.
 	RsOhai = "OHAI"
 
+	// RsIama denotes a message with the 'IAMA' response.
+	RsIama = "IAMA"
+
+	RsFload = "FLOAD"
+
+	//RsEject denotes a message with the 'EJECT' response.
+	RsEject = "EJECT"
+
+	RsPlay = "PLAY"
+
+	RsStop = "STOP"
+
+	RsEnd = "END"
+
+	RsPos = "POS"
+)
+
+const (
 	// AckOk denotes an ACK message with the 'OK' type.
 	AckOk = "OK"
 
@@ -41,43 +57,35 @@ const (
 
 	// AckFail denotes an ACK message with the 'FAIL' type.
 	AckFail = "FAIL"
+
+	// Tag that indicates a broadcast message.
+	TagBroadcast = "!"
 )
 
 type Message []string
 
-// Read constructs a 'read' request command, with tag and path to be read.
-func Read(tag, path string) Message {
-	return Message{RqRead, tag, path}
+// Req constructs a request command.
+func Req(tag, reqType string, params ...string) Message {
+	req := Message{tag, string(reqType)}
+	return append(req, params...)
 }
 
-// Write constructs a 'write' request command, with tag, path to be written
-// to and value to write.
-func Write(tag, path, value string) Message {
-	return Message{RqWrite, tag, path, value}
-}
-
-// Delete constructs a 'delete' request command, with tag and path to be deleted.
-func Delete(tag, path string) Message {
-	return Message{RqDelete, tag, path}
-}
-
-// Res constructs a 'RES' response command, with tag, path, type of value and
-// actual value of said path.
-func Res(tag, path, val_type, value string) Message {
-	return Message{RsRes, tag, path, val_type, value}
-}
-
-// Update constructs an 'UPDATE' response command, with path that's been
-// updated and the path's new value with its type.
-func Update(path, val_type, value string) Message {
-	return Message{RsUpdate, path, val_type, value}
+// Res constructs a response command.
+func Res(tag, resType string, params ...string) Message {
+	res := Message{tag, resType}
+	return append(res, params...)
 }
 
 // Ack constructs an 'ACK' response command, with the type of ACK and message,
 // followed by the original request command.
-func Ack(ack_type, msg string, orig_cmd Message) Message {
-	resp := Message{RsAck, ack_type, msg}
-	return append(resp, orig_cmd...)
+func Ack(tag, ackType, msg string, origCmd Message) Message {
+	resp := Message{tag, RsAck, ackType, msg}
+	return append(resp, origCmd...)
+}
+
+// IsBroadcast checks the tag for the broadcast identifier.
+func (m Message) IsBroadcast() bool {
+	return m[0] == TagBroadcast
 }
 
 func escapeArgument(input string) string {

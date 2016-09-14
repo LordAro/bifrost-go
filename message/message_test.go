@@ -1,57 +1,67 @@
-package message
+package message_test
 
-import "testing"
-import "reflect"
+import (
+	"reflect"
+	"testing"
+
+	msg "github.com/UniversityRadioYork/bifrost-go/message"
+)
 
 // It feels like there should be more tests here, but since Message is
 // essentially just a []string, why bother?
 
 func TestPack(t *testing.T) {
 	cases := []struct {
-		msg  Message
-		want []byte
+		msg     msg.Message
+		want    []byte
+		wantstr string
 	}{
-		// Read helper func, Unescaped command
+		// Res helper func, Unescaped command
 		{
-			Read("uuid", "/player/file"),
-			[]byte("read uuid /player/file\n"),
+			msg.Res("uuid", msg.RsFload, "/this/is/a/file"),
+			[]byte("uuid FLOAD /this/is/a/file\n"),
+			"uuid FLOAD /this/is/a/file",
 		},
-		// Write helper func, Backslashes
+		// Req helper func, Backslashes
 		{
-			Write("uuid", "/player/file", `C:\silly\windows\is\silly`),
-			[]byte(`write uuid /player/file 'C:\silly\windows\is\silly'` + "\n"),
-		},
-		// Delete helper func
-		{
-			Delete("uuid", "/player/file"),
-			[]byte("delete uuid /player/file\n"),
+			msg.Req("uuid", msg.RqFload, `C:\silly\windows\is\silly`),
+			[]byte(`uuid fload 'C:\silly\windows\is\silly'` + "\n"),
+			"uuid fload C:\\silly\\windows\\is\\silly",
 		},
 		// Spaces
 		{
-			Write("uuid", "/player/file", "/home/donald/01 The Nightfly.mp3"),
-			[]byte("write uuid /player/file '/home/donald/01 The Nightfly.mp3'\n"),
+			msg.Ack("uuid", msg.AckOk, "success", msg.Req(msg.RqFload, "/home/the donald/01 The Nightfly.mp3")),
+			[]byte("uuid ACK OK success fload '/home/the donald/01 The Nightfly.mp3'\n"),
+			"uuid ACK OK success fload /home/the donald/01 The Nightfly.mp3",
 		},
 		// Single quotes
 		{
-			Message{RsOhai, "a'bar'b"},
+			msg.Message{msg.RsOhai, "a'bar'b"},
 			[]byte(`OHAI 'a'\''bar'\''b'` + "\n"),
+			`OHAI a'bar'b`,
 		},
 		// Double quotes
 		{
-			Message{RsOhai, `a"bar"b`},
+			msg.Message{msg.RsOhai, `a"bar"b`},
 			[]byte(`OHAI 'a"bar"b'` + "\n"),
+			`OHAI a"bar"b`,
 		},
 		// Single word (shouldn't ever be used)
 		{
-			Message{RsOhai},
+			msg.Message{msg.RsOhai},
 			[]byte("OHAI\n"),
+			"OHAI",
 		},
 	}
 
 	for _, c := range cases {
 		got := c.msg.Pack()
+		gotstr := c.msg.String()
 		if !reflect.DeepEqual(c.want, got) {
 			t.Errorf("Message.Pack(%q) == %q, want %q", c.msg, got, c.want)
+		}
+		if gotstr != c.wantstr {
+			t.Errorf("Message.String(%q) == %q, want %q", c.msg, gotstr, c.wantstr)
 		}
 	}
 }
