@@ -78,9 +78,8 @@ func Res(tag, resType string, params ...string) Message {
 
 // Ack constructs an 'ACK' response command, with the type of ACK and message,
 // followed by the original request command.
-func Ack(tag, ackType, msg string, origCmd Message) Message {
-	resp := Message{tag, RsAck, ackType, msg}
-	return append(resp, origCmd...)
+func Ack(tag, ackType, msg string) Message {
+	return Message{tag, RsAck, ackType, msg}
 }
 
 // IsBroadcast checks the tag for the broadcast identifier.

@@ -30,9 +30,9 @@ func TestPack(t *testing.T) {
 		},
 		// Spaces
 		{
-			msg.Ack("uuid", msg.AckOk, "success", msg.Req(msg.RqFload, "/home/the donald/01 The Nightfly.mp3")),
-			[]byte("uuid ACK OK success fload '/home/the donald/01 The Nightfly.mp3'\n"),
-			"uuid ACK OK success fload /home/the donald/01 The Nightfly.mp3",
+			msg.Ack("uuid", msg.AckOk, "/home/the donald/01 The Nightfly.mp3"),
+			[]byte("uuid ACK OK '/home/the donald/01 The Nightfly.mp3'\n"),
+			"uuid ACK OK /home/the donald/01 The Nightfly.mp3",
 		},
 		// Single quotes
 		{
